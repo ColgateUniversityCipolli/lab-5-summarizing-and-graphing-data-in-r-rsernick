@@ -1,4 +1,5 @@
 library(tidyverse)
+library(xtable)
 
 ## Create tibbles for both csv's
 
@@ -29,8 +30,8 @@ loudness.dat = all.dat |>
                        TRUE                    ~ "Within Range"))
 
 features = all.dat |>
-  select(-c("artist", "album", "track", "chords_scale",
-                                     "chords_key", "key", "mode")) |>
+  select(-c("artist", "album", "track", "chords_scale", "chords_key", "key", 
+            "mode")) |>
   colnames()
 
 
@@ -38,11 +39,11 @@ compare = function(feature){
   results = all.dat |>
   group_by(artist) |>
     summarize(
-      IQR = (quantile(get(feature), .75)-quantile(get(feature), .25)),
-      min = min(get(feature)),
-      LF = quantile(get(feature), .25) - 1.5*IQR,
-      UF = quantile(get(feature), .75) + 1.5*IQR,
-      max = max(get(feature))) |>
+      IQR = (quantile(get(feature), .75, na.rm = T)-quantile(get(feature), .25, na.rm = T)),
+      min = min(get(feature), na.rm = T),
+      LF = quantile(get(feature), .25, na.rm = T) - 1.5*IQR,
+      UF = quantile(get(feature), .75, na.rm = T) + 1.5*IQR,
+      max = max(get(feature)), na.rm = T) |>
     mutate(out.of.range = case_when(
       allentown.dat[[feature]] < min ~ "TRUE",
       allentown.dat[[feature]] > max ~ "TRUE",
@@ -63,9 +64,6 @@ features.dat = compare("overall_loudness")
 
 ## Have to remove NA from tone 
 
-all.dat = all.dat|>
-  mutate(Tone = case_when(is.na(Tone) ~ 0,
-                          TRUE        ~ Tone))
 
 ## Run the function for every feature
 
@@ -74,5 +72,112 @@ for(i in 2:length(features)){
   features.dat = features.dat|>
   right_join(results, by = "artist", suffix = c("", ""))
 }
-  
+
+features.dat = features.dat |>
+  mutate(within.range = 0) |>
+  mutate(outlying = 0) |>
+  mutate(out.of.range = 0)
+
+for(feature in features){
+  features.dat = features.dat |>
+    rowwise() |>
+    mutate(within.range = case_when(get(feature) == "Within Range" ~ within.range+1,
+                                    TRUE                           ~ within.range)) |>
+    mutate(outlying = case_when(get(feature) == "Outlying" ~ outlying+1,
+                                TRUE                       ~ outlying)) |>
+    mutate(out.of.range = case_when(get(feature) == "Out of Range" ~ out.of.range+1,
+                                TRUE                               ~ out.of.range)) 
+}
+
+################################################################################
+## Repeat previous steps for musical features
+################################################################################
+musical.dat = features.dat[1:79]
+
+musical.dat = musical.dat |>
+  mutate(within.range = 0) |>
+  mutate(outlying = 0) |>
+  mutate(out.of.range = 0)
+
+for(feature in features[1:78]){
+  musical.dat = musical.dat |>
+    rowwise() |>
+    mutate(within.range = case_when(get(feature) == "Within Range" ~ within.range+1,
+                                    TRUE                           ~ within.range)) |>
+    mutate(outlying = case_when(get(feature) == "Outlying" ~ outlying+1,
+                                TRUE                       ~ outlying)) |>
+    mutate(out.of.range = case_when(get(feature) == "Out of Range" ~ out.of.range+1,
+                                    TRUE                               ~ out.of.range)) 
+}
+
+musical.range = musical.dat |>
+  select(artist, within.range, outlying, out.of.range)
+
+################################################################################
+## Repeat steps for lyrical features
+################################################################################
+
+lyrical.dat = features.dat[-(2:79)]|>
+  select(-within.range, -out.of.range, -outlying)
+
+lyrical.dat = lyrical.dat |>
+  mutate(within.range = 0) |>
+  mutate(outlying = 0) |>
+  mutate(out.of.range = 0)
+
+for(feature in features[79:length(features)]){
+  lyrical.dat = lyrical.dat |>
+    rowwise() |>
+    mutate(within.range = case_when(get(feature) == "Within Range" ~ within.range+1,
+                                    TRUE                           ~ within.range)) |>
+    mutate(outlying = case_when(get(feature) == "Outlying" ~ outlying+1,
+                                TRUE                       ~ outlying)) |>
+    mutate(out.of.range = case_when(get(feature) == "Out of Range" ~ out.of.range+1,
+                                    TRUE                               ~ out.of.range)) 
+}
+
+lyrical.range = lyrical.dat |>
+  select(artist, within.range, outlying, out.of.range)
+
+################################################################################
+################################################################################
+################################################################################
+
+range.dat = features.dat |>
+  select(artist, within.range, outlying, out.of.range)
+################################################################################
+## Save data to csv files to use in lab report
+################################################################################
+
+write_csv(range.dat, "range.csv")
+
+write_csv(features.dat, "features.csv")
+
+write_csv(musical.dat, "musical-dat.csv")
+
+write_csv(lyrical.dat, "lyrical-dat.csv")
+
+
+################################################################################
+## Graph making
+################################################################################
+
+
+ggplot(data = features.dat)+
+  geom_col(aes(x = artist, y =within.range))+
+  ylab("Within Range")+
+  xlab("Artist")
+
+ggplot(data = features.dat)+
+  geom_col(aes(x = artist, y = out.of.range+outlying))
+
+ggplot(data = musical.dat)+
+  geom_col(aes(x = artist, y = within.range))
+
+ggplot(data = lyrical.dat)+
+  geom_col(aes(x = artist, y = within.range))+
+  ylab("Within Range")+
+  xlab("Artist")
+
+xtable(range.dat)
 

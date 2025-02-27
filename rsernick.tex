@@ -93,7 +93,7 @@
 In this lab, we took the data we extracted from last lab and interpreted it in terms of wether the data for \emph{Allentown} was within range, outlying, or out of range of the data from each of the artists that contributed. In the end this will give us an idea of which artist contributed the most.
 \end{abstract}
 
-\noindent \textbf{Keywords:} 
+\noindent \textbf{Keywords: \texttt{tidyverse}, \texttt{ggplot2}} 
 
 \section{Introduction}
 
@@ -101,26 +101,28 @@ The purpose of this lab, and the two leading up to it, was to determine which ar
 
 \section{Methods}
 
-The data we used from this lab came from Essentia, Essentia Models, and LIWC. These programs help model data from a song's waveform and lyrics in a quantitative way. To answer our research question, we needed to determine whether the value for a specific feature output by the models was within range, outliyng, or out of the range of the values from each artist.
+The data we used from this lab came from Essentia \citep{Essentia}, Essentia Models \citep{EssentiaModels}, and Linguistic Inquiry and Word Count (LIWC) \citep{LIWC}. These programs help model data from a song's waveform and lyrics in a quantitative way. To answer our research question, we needed to determine whether the value for a specific feature output by the models was within range, outliyng, or out of the range of the values from each artist.
 
 \subsection{Summarize Data for Features by Artist}
 
 In order to determine if \emph{Allentown} is within range, outlying, or out of range of every feature I needed to create a function that takes the feature name as a parameter. First in the function I needed to calculate the IQR, minimum, lower fence, upper fence, and maximum of the data for each artist. This was made easier using the \texttt{group\_by()} and \texttt{summarize()} functions in \texttt{tidyverse} \citep{tidyverse}.
 \\ \\
-Now with these values I could calculate whether the feature value for \emph{Allentown} was out of range ($<$min or $>$max), outlying ($<$LF or $>$UF), or within range.
+Now with these values I calculated whether the feature value for \emph{Allentown} was out of range ($<$min or $>$max), outlying ($<$LF or $>$UF), or within range, and stored values for each feature as such.
 
 \columnbreak
 
 \subsection{Counts}
 
-Now with the range data for each feature I could create a graph to show which artists have the most within range, outlying, or out of range to answer the lab's main question, but we also needed to create tables to reinforce the graphs. In order to get the data into a table I needed to calculate the number of times within range appeared in an artist's row. 
+Now with the range data for each feature I needed to calculate the number of times within range, outlying, and out of range appeared in an artist's row. By using a \texttt{for()} loop that ran for every feature, \texttt{case\_when()}, and \texttt{rowwise()} (another tidyverse function) I was able to get a count of every feature's range data by artist.
 
+\subsection{Separating Data}
 
+To help answer the question, I wanted to see how the data from the song's wave forms differed from the data from the song's lyrics. Since I knew that the Essentia data was from the song's wave forms I repeated the counting step for the 78 features (all of the features from Essentia/Essentia Models) labeling it Musical Data, and repeated the counting step for every feature after the 78th (all features from LIWC) labeling it lyrical data.
 
 
 \section{Results}
 
-Using \texttt{ggplot2}, \citep{ggplot2} I tested creating multiple column plots, but ultimately ended up dividing the data into All Data, Musical Data, and Lyrical Data. I thought this was the best way to display the data and answer the question because it gives two different answers.
+Using \texttt{ggplot2}, \citep{ggplot2} I tested creating multiple column plots, but ultimately ended up dividing the data into All Data, Musical Data, and Lyrical Data and plotting artist against the within range count. I thought this was the best way to display the data and answer the question because it gives two different answers. In addition to the graphs, I used xtable \citep{xtable} to create tables of the range data for All Data, Musical Data, and Lyrical Data.
 
 \begin{description}
   \item[All Data:] As shown in \hyperref[Graph]{All Data graph} and \hyperref[AllTable]{All Data table}, \emph{Allentown} has the most features within range of Manchester Orchestra.
@@ -128,7 +130,7 @@ Using \texttt{ggplot2}, \citep{ggplot2} I tested creating multiple column plots,
   \item[Lyrical Data:] As shown in \hyperref[Graph]{Lyrical Data graph} and \hyperref[LyricalTable]{Lyrical Data table}, \emph{Allentown} has the most lyrical features within range of The Front Bottoms
 \end{description}
 
-
+\columnbreak
 
 \section{Discussion}
 
@@ -140,11 +142,21 @@ Using \texttt{ggplot2}, \citep{ggplot2} I tested creating multiple column plots,
   \item[Lyrical Data:]{Interestingly, the lyrical feature analysis reveals that The Front Bottoms have the highest number of within range features (109). This suggests that, while \emph{Allentown} aligns musically with Manchester Orchestra, its lyrical characteristics are more similar to The Front Bottoms. This distinction indicates that different elements of the song may be influenced by different artists, with Manchester Orchestra shaping its musical aspects and The Front Bottoms influencing its lyrical composition.}
 \end{description}
 
-\pagebreak
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vspace{2em}
+
+
+\begin{tiny}
+\bibliography{bib}
+\end{tiny}
+\end{multicols}
 \onecolumn
 
-\section{Appendix}
+\section*{Appendix}
 
 
 
@@ -213,18 +225,4 @@ Using \texttt{ggplot2}, \citep{ggplot2} I tested creating multiple column plots,
 \label{LyricalTable}
 \end{table}
 
-\pagebreak
-\twocolumn
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Bibliography
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\vspace{2em}
-\begin{tiny}
-\bibliography{bib}
-\end{tiny}
-
-
-\end{multicols}
 \end{document}
